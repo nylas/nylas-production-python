@@ -2,9 +2,9 @@ import json
 import sys
 import traceback
 
-from nylas.logging import get_logger
-from nylas.sentry import (log_uncaught_errors, get_sentry_client,
-                          safe_format_exception, MAX_EXCEPTION_LENGTH)
+from nylas.logging import (get_logger, safe_format_exception,
+                           MAX_EXCEPTION_LENGTH)
+from nylas.logging.sentry import log_uncaught_errors, get_sentry_client
 
 
 class ReallyVerboseError(Exception):
@@ -12,13 +12,13 @@ class ReallyVerboseError(Exception):
         return 10**6 * 'A'
 
 
-def test_root_filelogger(config, log):
+def test_root_filelogger(logfile):
     logger = get_logger()
     logger.info('INFO')
     logger.warning('WARNING')
     logger.error('ERROR')
     # NOTE: This slurps the whole logfile. Hope it's not big.
-    log_contents = open(config.get_required('TEST_LOGFILE'), 'r').read()
+    log_contents = logfile.read()
 
     assert all(phrase in log_contents
                for phrase in ('INFO', 'WARNING', 'ERROR'))
@@ -31,14 +31,13 @@ def error_throwing_function():
     raise ValueError
 
 
-def test_log_uncaught_errors(config, log):
+def test_log_uncaught_errors(logfile):
     try:
         error_throwing_function()
     except:
         log_uncaught_errors()
 
-    with open(config.get_required('TEST_LOGFILE'), 'r') as f:
-        last_log_entry = json.loads(f.readlines()[-1])
+    last_log_entry = json.loads(logfile.readlines()[-1])
 
     assert 'exception' in last_log_entry
     exc_info = last_log_entry['exception']

@@ -6,9 +6,8 @@ from nylas.logging import get_logger, MAX_EXCEPTION_LENGTH
 _sentry_client = None
 
 
-def get_sentry_client():
+def get_sentry_client(sentry_dsn=None):
     if _sentry_client is None:
-        sentry_dsn = config.get_required('SENTRY_DSN')
         return raven.Client(
             sentry_dsn,
             processors=('nylas.logging.TruncatingProcessor',))
@@ -44,11 +43,11 @@ class TruncatingProcessor(raven.processors.Processor):
 
 
 def sentry_alert(*args, **kwargs):
-    if config.get('SENTRY_EXCEPTIONS'):
-        get_sentry_client().captureException(*args, **kwargs)
+    get_sentry_client().captureException(*args, **kwargs)
 
 
-def log_uncaught_errors(logger=None, account_id=None, action_id=None):
+def log_uncaught_errors(logger=None, account_id=None, action_id=None,
+                        log_to_sentry=False):
     """
     Helper to log uncaught exceptions.
 
@@ -61,4 +60,5 @@ def log_uncaught_errors(logger=None, account_id=None, action_id=None):
     logger = logger or get_logger()
     logger.error('Uncaught error', exc_info=True, action_id=action_id)
     user_data = {'account_id': account_id, 'action_id': action_id}
-    sentry_alert(extra=user_data)
+    if log_to_sentry:
+        sentry_alert(extra=user_data)
