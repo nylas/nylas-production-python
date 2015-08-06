@@ -152,7 +152,7 @@ structlog.configure(
 get_logger = structlog.get_logger
 
 
-def configure_logging(log_level=10):
+def configure_logging(log_level=None):
     """ Idempotently configure logging.
 
     Infers options based on whether or not the output is a TTY.
@@ -160,6 +160,10 @@ def configure_logging(log_level=10):
     Sets the root log level to DEBUG if not otherwise specified.
 
     """
+
+    if log_level is None:
+        log_level = 10
+
     tty_handler = logging.StreamHandler(sys.stdout)
     if sys.stdout.isatty():
         # Use a more human-friendly format.
