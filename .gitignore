@@ -1,0 +1,8 @@
+*.pyc
+.eggs/
+bin/
+include/
+lib/
+local/
+nylas_production_python.egg-info/
+tests/__pycache__/
