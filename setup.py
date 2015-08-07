@@ -31,7 +31,7 @@ setup(
 
     install_requires=[
         "raven==5.5.0",
-        "gevent==1.0.1",
+        "gevent>=1.0.1",
         "colorlog==1.8",
         "structlog==0.4.1"],
 
