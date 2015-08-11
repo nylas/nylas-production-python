@@ -1,9 +1,21 @@
 import socket
 import errno
-from gevent.pywsgi import WSGIHandler
 
-from nylas.logging import get_logger
+from gevent.pywsgi import WSGIHandler, WSGIServer
+
+from gunicorn.workers.ggevent import GeventWorker
+import gunicorn.glogging
+
+from nylas.util.debug import Tracer
+from nylas.logging import get_logger, configure_logging
 log = get_logger()
+
+# Monkeypatch with values from your app's config file to change.
+# Set to 0 to disable altogether.
+MAX_BLOCKING_TIME = 1.
+
+# Same deal here (with monkeypatching).
+LOGLEVEL = 10
 
 
 class NylasWSGIHandler(WSGIHandler):
@@ -55,3 +67,23 @@ class NylasWSGIHandler(WSGIHandler):
             self.close_connection = True
         else:
             super(NylasWSGIHandler, self).handle_error(type, value, tb)
+
+
+class NylasWSGIWorker(GeventWorker):
+    """Custom worker class for gunicorn. Based on
+    gunicorn.workers.ggevent.GeventPyWSGIWorker."""
+    server_class = WSGIServer
+    wsgi_handler = NylasWSGIHandler
+
+    def init_process(self):
+        if MAX_BLOCKING_TIME:
+            self.tracer = Tracer(max_blocking_time=MAX_BLOCKING_TIME)
+            self.tracer.start()
+        super(NylasWSGIWorker, self).init_process()
+
+
+class NylasGunicornLogger(gunicorn.glogging.Logger):
+    def __init__(self, cfg):
+        gunicorn.glogging.Logger.__init__(self, cfg)
+        configure_logging(log_level=LOGLEVEL)
+        self.error_log = log
