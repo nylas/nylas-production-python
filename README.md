@@ -11,7 +11,7 @@ This library is available on pypi. You can install it by running `pip install ny
 
 We'd love your help making Nylas better. We hang out on Slack. [Join the channel here ![Slack Invite Button](http://slack-invite.nylas.com/badge.svg)](http://slack-invite.nylas.com) You can also email [support@nylas.com](mailto:support@nylas.com).
 
-Please sign the Contributor License Agreement before submitting pull requests. (It's similar to other projects, like NodeJS or Meteor.)
+Please sign the [Contributor License Agreement](https://nylas.com/cla.html) before submitting pull requests. (It's similar to other projects, like NodeJS or Meteor.)
 
 If you have access to the PyPI repository, you can make a new release as such:
 
