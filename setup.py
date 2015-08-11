@@ -1,8 +1,11 @@
 import sys
+import os
 
 from setuptools.command.test import test as TestCommand
 
 from setuptools import setup, find_packages
+
+from nylas._production_python_version import __VERSION__
 
 
 class PyTest(TestCommand):
@@ -24,31 +27,49 @@ class PyTest(TestCommand):
         sys.exit(errno)
 
 
-setup(
-    name="nylas-production-python",
-    version="0.1",
-    packages=find_packages(),
+def main():
+    if len(sys.argv) > 1:
+        if sys.argv[1] == 'publish':
+            os.system('git push --follow-tags && python setup.py sdist upload')
+            sys.exit()
+        elif sys.argv[1] == 'release':
+            if len(sys.argv) < 3:
+                type_ = 'patch'
+            else:
+                type_ = sys.argv[2]
+            os.system('bumpversion --current-version {} {}'
+                      .format(__VERSION__, type_))
+            sys.exit()
 
-    install_requires=[
-        "raven>=5.5.0",
-        "gevent>=1.0.1",
-        "colorlog>=1.8",
-        "structlog>=0.4.1"],
+    setup(
+        name="nylas-production-python",
+        version=__VERSION__,
+        packages=find_packages(),
 
-    tests_require=["pytest"],
-    cmdclass={'test': PyTest},
+        install_requires=[
+            "raven>=5.5.0",
+            "gevent>=1.0.1",
+            "colorlog>=1.8",
+            "structlog>=0.4.1"],
 
-    dependency_links=[],
+        tests_require=["pytest"],
+        cmdclass={'test': PyTest},
 
-    include_package_data=True,
-    package_data={},
-    data_files=[],
-    scripts=[],
-    zip_safe=False,
-    author="Nylas Team",
-    author_email="team@nylas.com",
-    description="Nylas production python utilities",
-    license="AGPLv3",
-    keywords="nylas",
-    url="https://www.nylas.com",
-)
+        dependency_links=[],
+
+        include_package_data=True,
+        package_data={},
+        data_files=[],
+        scripts=[],
+        zip_safe=False,
+        author="Nylas Team",
+        author_email="team@nylas.com",
+        description="Nylas production python utilities",
+        license="AGPLv3",
+        keywords="nylas",
+        url="https://www.nylas.com",
+    )
+
+
+if __name__ == '__main__':
+    sys.exit(main())
