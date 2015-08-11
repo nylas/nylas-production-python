@@ -1,7 +1,12 @@
+from pkgutil import extend_path
+
+# Allow out-of-tree submodules.
+__path__ = extend_path(__path__, __name__)
+
 import raven
 import raven.processors
 
-from nylas.logging import get_logger, MAX_EXCEPTION_LENGTH
+from nylas.logging.log import get_logger, MAX_EXCEPTION_LENGTH
 
 _sentry_client = None
 
