@@ -54,7 +54,7 @@ def main():
             "gunicorn>=19.0.0",
         ],
 
-        tests_require=["pytest"],
+        tests_require=["pytest", "coverage"],
         cmdclass={'test': PyTest},
 
         dependency_links=[],
