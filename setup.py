@@ -68,7 +68,7 @@ def main():
         author_email="team@nylas.com",
         description="Nylas production python utilities",
         license="AGPLv3",
-        keywords="nylas",
+        keywords="nylas api production",
         url="https://www.nylas.com",
     )
 
