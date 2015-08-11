@@ -1,5 +1,6 @@
 # NOTE: This is copied straight from the nylas python bindings' top-level
-# __init__.py. Don't change it unless you want to introduce import bugs
+# __init__.py, with some modifications to make it work if the client SDK
+# isn't installed. Don't change it unless you want to introduce import bugs
 # based on install ordering.
 from pkgutil import extend_path
 
