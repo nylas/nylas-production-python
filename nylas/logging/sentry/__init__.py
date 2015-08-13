@@ -8,14 +8,21 @@ import raven.processors
 
 from nylas.logging.log import get_logger, MAX_EXCEPTION_LENGTH
 
+# Monkeypatch with values from your app's config to configure.
+SENTRY_DSN = None
+
 _sentry_client = None
 
 
-def get_sentry_client(sentry_dsn=None):
+def sentry_exceptions_enabled():
+    return SENTRY_DSN is not None
+
+
+def get_sentry_client():
     if _sentry_client is None:
         return raven.Client(
-            sentry_dsn,
-            processors=('nylas.logging.TruncatingProcessor',))
+            SENTRY_DSN,
+            processors=('nylas.logging.sentry.TruncatingProcessor',))
     return _sentry_client
 
 
@@ -48,13 +55,15 @@ class TruncatingProcessor(raven.processors.Processor):
 
 
 def sentry_alert(*args, **kwargs):
-    get_sentry_client().captureException(*args, **kwargs)
+    if sentry_exceptions_enabled():
+        get_sentry_client().captureException(*args, **kwargs)
 
 
-def log_uncaught_errors(logger=None, account_id=None, action_id=None,
-                        log_to_sentry=False):
+def log_uncaught_errors(logger=None, **kwargs):
     """
     Helper to log uncaught exceptions.
+
+    All additional kwargs supplied will be sent to Sentry as extra data.
 
     Parameters
     ----------
@@ -63,7 +72,5 @@ def log_uncaught_errors(logger=None, account_id=None, action_id=None,
 
     """
     logger = logger or get_logger()
-    logger.error('Uncaught error', exc_info=True, action_id=action_id)
-    user_data = {'account_id': account_id, 'action_id': action_id}
-    if log_to_sentry:
-        sentry_alert(extra=user_data)
+    logger.error('Uncaught error', exc_info=True, **kwargs)
+    sentry_alert(extra=kwargs)
