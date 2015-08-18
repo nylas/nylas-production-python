@@ -61,17 +61,6 @@ def _record_module(logger, name, event_dict):
     return event_dict
 
 
-def _format_string_renderer(_, __, event_dict):
-    """Processor to be used with the BoundLogger class below to properly handle
-    messages of the form
-    `log.info('some message to format %s', some_value')`."""
-    positional_args = event_dict.get('_positional_args')
-    if positional_args:
-        event_dict['event'] = event_dict['event'] % positional_args
-        del event_dict['_positional_args']
-    return event_dict
-
-
 def safe_format_exception(etype, value, tb, limit=None):
     """Similar to structlog._format_exception, but truncate the exception part.
     This is because SQLAlchemy exceptions can sometimes have ludicrously large
@@ -100,38 +89,13 @@ def _safe_exc_info_renderer(_, __, event_dict):
     return event_dict
 
 
-class BoundLogger(structlog._base.BoundLoggerBase):
-    """Adaptation of structlog.stdlib.BoundLogger to accept positional
-    arguments. See https://github.com/hynek/structlog/pull/23/
-    (we can remove this if that ever gets merged)."""
-    def debug(self, event=None, *args, **kw):
-        return self._proxy_to_logger('debug', event, *args, **kw)
+class BoundLogger(structlog.stdlib.BoundLogger):
+    """ BoundLogger which always adds greenlet_id to positional args """
 
-    def info(self, event=None, *args, **kw):
-        return self._proxy_to_logger('info', event, *args, **kw)
-
-    def warning(self, event=None, *args, **kw):
-        return self._proxy_to_logger('warning', event, *args, **kw)
-
-    warn = warning
-
-    def error(self, event=None, *args, **kw):
-        return self._proxy_to_logger('error', event, *args, **kw)
-
-    def critical(self, event=None, *args, **kw):
-        return self._proxy_to_logger('critical', event, *args, **kw)
-
-    def exception(self, event=None, *args, **kw):
-        kw['exc_info'] = True
-        return self._proxy_to_logger('error', event, *args, **kw)
-
-    def _proxy_to_logger(self, method_name, event=None, *event_args,
-                         **event_kw):
-        if event_args:
-            event_kw['_positional_args'] = event_args
+    def _proxy_to_logger(self, method_name, event, *event_args, **event_kw):
         event_kw['greenlet_id'] = id(gevent.getcurrent())
-        return super(BoundLogger, self)._proxy_to_logger(method_name, event,
-                                                         **event_kw)
+        return super(BoundLogger, self)._proxy_to_logger(
+                method_name, event, *event_args, **event_kw)
 
 structlog.configure(
     processors=[
@@ -141,7 +105,6 @@ structlog.configure(
         _safe_exc_info_renderer,
         _record_module,
         _record_level,
-        _format_string_renderer,
         structlog.processors.JSONRenderer(),
     ],
     context_class=wrap_dict(dict),

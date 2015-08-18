@@ -20,8 +20,12 @@ def test_root_filelogger(logfile):
     # NOTE: This slurps the whole logfile. Hope it's not big.
     log_contents = logfile.read()
 
-    assert all(phrase in log_contents
-               for phrase in ('INFO', 'WARNING', 'ERROR'))
+    loglines = [json.loads(l) for l in log_contents.strip().split('\n')]
+    assert [l['event'] for l in loglines] == ['INFO', 'WARNING', 'ERROR']
+
+    for l in loglines:
+        assert l['module'].startswith(__name__)
+        assert 'greenlet_id' in l
 
 
 # Helper functions for test_log_uncaught_errors
