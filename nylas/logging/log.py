@@ -124,6 +124,9 @@ def configure_logging(log_level=None):
 
     """
 
+    # Set loglevel DEBUG if not otherwise specified. (We don't set a
+    # default in the case that you're loading a value from a config and
+    # may be passing in None explicitly if it's not defined.)
     if log_level is None:
         log_level = 10
 
@@ -148,5 +151,4 @@ def configure_logging(log_level=None):
         if getattr(handler, '_nylas', False):
             root_logger.removeHandler(handler)
     root_logger.addHandler(tty_handler)
-    # Set loglevel DEBUG if config value is missing.
     root_logger.setLevel(log_level)
