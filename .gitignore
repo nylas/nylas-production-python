@@ -12,3 +12,4 @@ dist/
 tests/coverage
 tests/output
 .coverage
+htmlcov/
