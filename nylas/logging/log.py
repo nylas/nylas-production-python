@@ -128,7 +128,7 @@ def configure_logging(log_level=None):
     # default in the case that you're loading a value from a config and
     # may be passing in None explicitly if it's not defined.)
     if log_level is None:
-        log_level = 10
+        log_level = logging.INFO
 
     tty_handler = logging.StreamHandler(sys.stdout)
     if sys.stdout.isatty():
