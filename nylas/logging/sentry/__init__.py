@@ -27,12 +27,7 @@ def get_sentry_client():
 
 
 class TruncatingProcessor(raven.processors.Processor):
-    """Truncates the exception value string, and strips stack locals.
-    Sending stack locals could potentially leak information."""
-
-    # A whitelist of locals we don't want to strip.
-    # They must be non-PII!
-    locals_whitelist = ['account_id', 'message_id']
+    """Truncates the exception value string"""
 
     # Note(emfree): raven.processors.Processor provides a filter_stacktrace
     # method to implement, but won't actually call it correctly. We can
@@ -44,13 +39,6 @@ class TruncatingProcessor(raven.processors.Processor):
             return data
         for item in data['exception']['values']:
             item['value'] = item['value'][:MAX_EXCEPTION_LENGTH]
-            stacktrace = item.get('stacktrace')
-            if stacktrace is not None:
-                if 'frames' in stacktrace:
-                    for frame in stacktrace['frames']:
-                        for stack_local in frame['vars'].keys():
-                            if stack_local not in self.locals_whitelist:
-                                frame['vars'].pop(stack_local)
         return data
 
 
