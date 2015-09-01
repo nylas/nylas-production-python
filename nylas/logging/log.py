@@ -89,6 +89,19 @@ def _safe_exc_info_renderer(_, __, event_dict):
     return event_dict
 
 
+def _safe_encoding_renderer(_, __, event_dict):
+    """Processor that converts all strings to unicode.
+       Note that we ignore conversion errors.
+    """
+    for key in event_dict:
+        entry = event_dict[key]
+        if isinstance(entry, str):
+            event_dict[key] = unicode(entry, encoding='utf-8',
+                                      errors='replace')
+
+    return event_dict
+
+
 class BoundLogger(structlog.stdlib.BoundLogger):
     """ BoundLogger which always adds greenlet_id to positional args """
 
@@ -103,6 +116,7 @@ structlog.configure(
         structlog.processors.TimeStamper(fmt='iso', utc=True),
         structlog.processors.StackInfoRenderer(),
         _safe_exc_info_renderer,
+        _safe_encoding_renderer,
         _record_module,
         _record_level,
         structlog.processors.JSONRenderer(),

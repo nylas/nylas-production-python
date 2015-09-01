@@ -13,3 +13,7 @@ tests/coverage
 tests/output
 .coverage
 htmlcov/
+
+# Vim
+*.swp
+*.swo
