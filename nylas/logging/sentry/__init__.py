@@ -9,21 +9,21 @@ import raven.processors
 from nylas.logging.log import get_logger, MAX_EXCEPTION_LENGTH
 
 # Monkeypatch with values from your app's config to configure.
-SENTRY_DSN = None
+SENTRY_DSN = {}
 
-_sentry_client = None
+_sentry_client = {}
 
 
 def sentry_exceptions_enabled():
     return SENTRY_DSN is not None
 
 
-def get_sentry_client():
-    if _sentry_client is None:
-        return raven.Client(
-            SENTRY_DSN,
+def get_sentry_client(app_name):
+    if app_name not in _sentry_client:
+        _sentry_client[app_name] = raven.Client(
+            SENTRY_DSN[app_name],
             processors=('nylas.logging.sentry.TruncatingProcessor',))
-    return _sentry_client
+    return _sentry_client[app_name]
 
 
 class TruncatingProcessor(raven.processors.Processor):
@@ -43,8 +43,15 @@ class TruncatingProcessor(raven.processors.Processor):
 
 
 def sentry_alert(*args, **kwargs):
+    _kwargs = kwargs
+    if 'extra' in kwargs:
+        _kwargs = kwargs['extra']
+    if 'app_name' not in _kwargs:
+        raise Exception("app_name needed to get sentry client")
+    app_name = _kwargs.pop('app_name')
+
     if sentry_exceptions_enabled():
-        get_sentry_client().captureException(*args, **kwargs)
+        get_sentry_client(app_name).captureException(*args, **kwargs)
 
 
 def log_uncaught_errors(logger=None, **kwargs):
