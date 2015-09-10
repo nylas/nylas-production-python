@@ -1,3 +1,4 @@
+import os
 from pkgutil import extend_path
 
 # Allow out-of-tree submodules.
@@ -12,14 +13,14 @@ _sentry_client = None
 
 
 def sentry_exceptions_enabled():
-    return SENTRY_DSN is not None
+    return 'SENTRY_DSN' in os.environ and os.environ['SENTRY_DSN'] != ''
 
 
 def get_sentry_client():
     if _sentry_client is None:
-        _sentry_client = raven.Client(
+        return raven.Client(
             processors=('nylas.logging.sentry.TruncatingProcessor',))
-    return _sentry_client[app_name]
+    return _sentry_client
 
 
 class TruncatingProcessor(raven.processors.Processor):
