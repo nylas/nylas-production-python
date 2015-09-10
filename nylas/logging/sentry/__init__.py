@@ -1,3 +1,4 @@
+import os
 from pkgutil import extend_path
 
 # Allow out-of-tree submodules.
@@ -8,20 +9,16 @@ import raven.processors
 
 from nylas.logging.log import get_logger, MAX_EXCEPTION_LENGTH
 
-# Monkeypatch with values from your app's config to configure.
-SENTRY_DSN = None
-
 _sentry_client = None
 
 
 def sentry_exceptions_enabled():
-    return SENTRY_DSN is not None
+    return 'SENTRY_DSN' in os.environ and os.environ['SENTRY_DSN'] != ''
 
 
 def get_sentry_client():
     if _sentry_client is None:
         return raven.Client(
-            SENTRY_DSN,
             processors=('nylas.logging.sentry.TruncatingProcessor',))
     return _sentry_client
 
