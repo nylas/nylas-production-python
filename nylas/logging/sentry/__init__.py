@@ -58,4 +58,4 @@ def log_uncaught_errors(logger=None, **kwargs):
     """
     logger = logger or get_logger()
     logger.error('Uncaught error', exc_info=True, **kwargs)
-    sentry_alert(extra=kwargs)
+    sentry_alert(tags=kwargs)
