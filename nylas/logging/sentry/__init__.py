@@ -1,4 +1,5 @@
 import os
+from urllib2 import URLError
 from pkgutil import extend_path
 
 # Allow out-of-tree submodules.
@@ -41,7 +42,11 @@ class TruncatingProcessor(raven.processors.Processor):
 
 def sentry_alert(*args, **kwargs):
     if sentry_exceptions_enabled():
-        get_sentry_client().captureException(*args, **kwargs)
+        try:
+            get_sentry_client().captureException(*args, **kwargs)
+        except URLError:
+            logger = get_logger()
+            logger.error('Error occured when sending exception to Sentry')
 
 
 def log_uncaught_errors(logger=None, **kwargs):
