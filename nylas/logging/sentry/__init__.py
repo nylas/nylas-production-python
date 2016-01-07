@@ -18,8 +18,9 @@ def sentry_exceptions_enabled():
 
 
 def get_sentry_client():
+    global _sentry_client
     if _sentry_client is None:
-        return raven.Client(
+        _sentry_client = raven.Client(
             processors=('nylas.logging.sentry.TruncatingProcessor',))
     return _sentry_client
 
