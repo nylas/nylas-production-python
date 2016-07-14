@@ -129,20 +129,30 @@ structlog.configure(
 get_logger = structlog.get_logger
 
 
+# Convenience map to let users set level with a string
+LOG_LEVELS = {"debug": logging.DEBUG,
+              "info": logging.INFO,
+              "warning": logging.WARNING,
+              "error": logging.ERROR,
+              "critical": logging.CRITICAL}
+
+
 def configure_logging(log_level=None):
     """ Idempotently configure logging.
 
     Infers options based on whether or not the output is a TTY.
 
-    Sets the root log level to DEBUG if not otherwise specified.
+    Sets the root log level to INFO if not otherwise specified.
 
     """
 
-    # Set loglevel DEBUG if not otherwise specified. (We don't set a
+    # Set loglevel INFO if not otherwise specified. (We don't set a
     # default in the case that you're loading a value from a config and
     # may be passing in None explicitly if it's not defined.)
     if log_level is None:
         log_level = logging.INFO
+    elif log_level in LOG_LEVELS:
+        log_level = LOG_LEVELS[log_level]
 
     tty_handler = logging.StreamHandler(sys.stdout)
     if sys.stdout.isatty():
