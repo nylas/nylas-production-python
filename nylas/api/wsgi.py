@@ -42,7 +42,15 @@ class NylasWSGIHandler(WSGIHandler):
         status = getattr(self, 'status', None)
         requestline = getattr(self, 'requestline', None)
 
+        # To use this, generate a unique ID at your termination proxy (e.g.
+        # haproxy or nginx) and set it as a header on the request
+        request_uid = self.headers.get('X-Unique-Id')
+
         additional_context = self.environ.get('log_context') or {}
+
+        # Since not all users may implement this, don't log null values
+        if request_uid is not None:
+            additional_context['request_uid'] = request_uid
 
         # 'prod', 'staging', 'dev' ...
         env = self.environ.get('NYLAS_ENV')
