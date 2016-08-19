@@ -44,6 +44,11 @@ class NylasWSGIHandler(WSGIHandler):
 
         additional_context = self.environ.get('log_context') or {}
 
+        # 'prod', 'staging', 'dev' ...
+        env = self.environ.get('NYLAS_ENV')
+        if env is not None:
+            additional_context['env'] = env
+
         log.info('request handled',
                  length=length,
                  request_time=request_time,
