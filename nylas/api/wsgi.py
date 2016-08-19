@@ -39,7 +39,7 @@ class NylasWSGIHandler(WSGIHandler):
         # Unix socket. In that case, replace with a meaningful value
         if client_address == '':
             client_address = self.headers.get('X-Forward-For')
-        status = getattr(self, 'status', None)
+        status = getattr(self, 'code', None)
         requestline = getattr(self, 'requestline', None)
 
         # To use this, generate a unique ID at your termination proxy (e.g.
@@ -58,11 +58,11 @@ class NylasWSGIHandler(WSGIHandler):
             additional_context['env'] = env
 
         log.info('request handled',
-                 length=length,
+                 response_bytes=length,
                  request_time=request_time,
-                 client_address=client_address,
-                 status=status,
-                 requestline=requestline,
+                 remote_addr=client_address,
+                 http_status=status,
+                 http_request=requestline,
                  **additional_context)
 
     def get_environ(self):
