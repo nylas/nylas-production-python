@@ -56,7 +56,7 @@ def _record_module(logger, name, event_dict):
     invoked."""
     f, name = find_first_app_frame_and_name(
         ignores=['structlog', 'nylas.logging', 'inbox.sqlalchemy_ext.util',
-                 'inbox.models.session', 'sqlalchemy'])
+                 'inbox.models.session', 'sqlalchemy', 'gunicorn.glogging'])
     event_dict['module'] = '{}:{}'.format(name, f.f_lineno)
     return event_dict
 
