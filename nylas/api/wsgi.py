@@ -1,3 +1,4 @@
+import os
 import socket
 import errno
 
@@ -53,7 +54,7 @@ class NylasWSGIHandler(WSGIHandler):
             additional_context['request_uid'] = request_uid
 
         # 'prod', 'staging', 'dev' ...
-        env = self.environ.get('NYLAS_ENV')
+        env = os.environ.get('NYLAS_ENV')
         if env is not None:
             additional_context['env'] = env
 
