@@ -1,9 +1,10 @@
 """
 Logging configuration.
 
-Mostly based off http://www.structlog.org/en/0.4.1/standard-library.html.
+Mostly based off http://www.structlog.org/en/16.1.0/standard-library.html.
 
 """
+import os
 import sys
 import traceback
 import logging
@@ -103,10 +104,16 @@ def _safe_encoding_renderer(_, __, event_dict):
 
 
 class BoundLogger(structlog.stdlib.BoundLogger):
-    """ BoundLogger which always adds greenlet_id to positional args """
+    """ BoundLogger which always adds greenlet_id and env to positional args """
 
     def _proxy_to_logger(self, method_name, event, *event_args, **event_kw):
         event_kw['greenlet_id'] = id(gevent.getcurrent())
+
+        # 'prod', 'staging', 'dev' ...
+        env = os.environ.get('NYLAS_ENV')
+        if env is not None:
+            event_kw['env'] = env
+
         return super(BoundLogger, self)._proxy_to_logger(
                 method_name, event, *event_args, **event_kw)
 
@@ -127,7 +134,6 @@ structlog.configure(
     cache_logger_on_first_use=True,
 )
 get_logger = structlog.get_logger
-
 
 # Convenience map to let users set level with a string
 LOG_LEVELS = {"debug": logging.DEBUG,

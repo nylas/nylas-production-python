@@ -1,4 +1,3 @@
-import os
 import socket
 import errno
 
@@ -52,11 +51,6 @@ class NylasWSGIHandler(WSGIHandler):
         # Since not all users may implement this, don't log null values
         if request_uid is not None:
             additional_context['request_uid'] = request_uid
-
-        # 'prod', 'staging', 'dev' ...
-        env = os.environ.get('NYLAS_ENV')
-        if env is not None:
-            additional_context['env'] = env
 
         log.info('request handled',
                  response_bytes=length,

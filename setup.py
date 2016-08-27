@@ -50,7 +50,7 @@ def main():
             "raven>=5.5.0",
             "gevent>=1.0.1",
             "colorlog>=1.8",
-            "structlog>=15.0.0",
+            "structlog>=16.1.0",
             "gunicorn>=19.0.0",
         ],
 
