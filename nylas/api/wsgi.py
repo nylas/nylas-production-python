@@ -41,6 +41,7 @@ class NylasWSGIHandler(WSGIHandler):
             client_address = self.headers.get('X-Forward-For')
         status = getattr(self, 'code', None)
         requestline = getattr(self, 'requestline', None)
+        method = getattr(self, 'command', None)
 
         # To use this, generate a unique ID at your termination proxy (e.g.
         # haproxy or nginx) and set it as a header on the request
@@ -58,6 +59,7 @@ class NylasWSGIHandler(WSGIHandler):
                  remote_addr=client_address,
                  http_status=status,
                  http_request=requestline,
+                 request_method=method,
                  **additional_context)
 
     def get_environ(self):
