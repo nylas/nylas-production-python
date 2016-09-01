@@ -182,3 +182,18 @@ def configure_logging(log_level=None):
             root_logger.removeHandler(handler)
     root_logger.addHandler(tty_handler)
     root_logger.setLevel(log_level)
+
+
+def create_error_log_context(exc_info):
+    exc_type, exc_value, exc_tb = exc_info
+
+    # Break down the info as much as Python gives us, for easier aggregation of
+    # similar error types.
+    error = exc_type.__name__
+    error_message = exc_value.message
+    error_tb = safe_format_exception(exc_type, exc_value, exc_tb)
+
+    return dict(
+        error=error,
+        error_message=error_message,
+        error_tb=error_tb)

@@ -1,4 +1,5 @@
 import os
+import sys
 from urllib2 import URLError
 from pkgutil import extend_path
 
@@ -8,7 +9,8 @@ __path__ = extend_path(__path__, __name__)
 import raven
 import raven.processors
 
-from nylas.logging.log import get_logger, MAX_EXCEPTION_LENGTH
+from nylas.logging.log import (get_logger, create_error_log_context,
+                               MAX_EXCEPTION_LENGTH)
 
 _sentry_client = None
 
@@ -63,5 +65,6 @@ def log_uncaught_errors(logger=None, **kwargs):
 
     """
     logger = logger or get_logger()
-    logger.error('Uncaught error', exc_info=True, **kwargs)
+    kwargs.update(create_error_log_context(sys.exc_info()))
+    logger.error('Uncaught error', **kwargs)
     sentry_alert(tags=kwargs)
