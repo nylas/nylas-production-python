@@ -38,7 +38,7 @@ class NylasWSGIHandler(WSGIHandler):
         # client_address is '' when requests are forwarded from nginx via
         # Unix socket. In that case, replace with a meaningful value
         if client_address == '':
-            client_address = self.headers.get('X-Forward-For')
+            client_address = self.headers.get('X-Forwarded-For')
         status = getattr(self, 'code', None)
         requestline = getattr(self, 'requestline', None)
         method = getattr(self, 'command', None)
