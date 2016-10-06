@@ -39,8 +39,8 @@ def find_first_app_frame_and_name(ignores=None):
     ignores = ignores or []
     f = sys._getframe()
     name = f.f_globals.get('__name__')
-    while f is not None and (name is None or
-                             any(name.startswith(i) for i in ignores)):
+    while f is not None and f.f_back is not None and \
+            (name is None or any(name.startswith(i) for i in ignores)):
         f = f.f_back
         name = f.f_globals.get('__name__')
     return f, name
@@ -145,7 +145,8 @@ LOG_LEVELS = {"debug": logging.DEBUG,
 
 
 def json_excepthook(etype, value, tb):
-    print >>sys.stderr, json.dumps(create_error_log_context((etype, value, tb)))
+    log = get_logger()
+    log.error(**create_error_log_context((etype, value, tb)))
 
 
 def configure_logging(log_level=None):
