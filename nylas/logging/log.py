@@ -6,6 +6,7 @@ Mostly based off http://www.structlog.org/en/16.1.0/standard-library.html.
 """
 import os
 import sys
+import json
 import traceback
 import logging
 import logging.handlers
@@ -77,7 +78,7 @@ def safe_format_exception(etype, value, tb, limit=None):
     # worry about that here.
     exc_only[0] = exc_only[0][:MAX_EXCEPTION_LENGTH]
     list = list + exc_only
-    return '\t'.join(list)
+    return ''.join(list)
 
 
 def _safe_exc_info_renderer(_, __, event_dict):
@@ -143,6 +144,10 @@ LOG_LEVELS = {"debug": logging.DEBUG,
               "critical": logging.CRITICAL}
 
 
+def json_excepthook(etype, value, tb):
+    print >>sys.stderr, json.dumps(create_error_log_context((etype, value, tb)))
+
+
 def configure_logging(log_level=None):
     """ Idempotently configure logging.
 
@@ -150,7 +155,11 @@ def configure_logging(log_level=None):
 
     Sets the root log level to INFO if not otherwise specified.
 
+    Overrides top-level exceptions to also print as JSON, rather than
+    printing to stderr as plaintext.
+
     """
+    sys.excepthook = json_excepthook
 
     # Set loglevel INFO if not otherwise specified. (We don't set a
     # default in the case that you're loading a value from a config and
