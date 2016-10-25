@@ -49,7 +49,7 @@ def test_log_uncaught_errors(logfile):
     error_tb = last_log_entry['error_tb']
 
     assert 'ValueError' == last_log_entry['error']
-    assert 'GreenletExit' not in 'error_tb'
+    assert 'GreenletExit' not in last_log_entry['error_tb']
     # Check that the traceback is logged. The traceback stored in
     # sys.exc_info() contains an extra entry for the test_log_uncaught_errors
     # frame, so just look for the rest of the traceback.
