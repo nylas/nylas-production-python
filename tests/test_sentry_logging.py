@@ -43,17 +43,19 @@ def test_log_uncaught_errors(logfile):
 
     last_log_entry = json.loads(logfile.readlines()[-1])
 
-    assert 'exception' in last_log_entry
-    exc_info = last_log_entry['exception']
+    assert 'error' in last_log_entry
+    assert 'error_message' in last_log_entry
+    assert 'error_tb' in last_log_entry
+    error_tb = last_log_entry['error_tb']
 
-    assert 'ValueError' in exc_info
-    assert 'GreenletExit' not in exc_info
+    assert 'ValueError' == last_log_entry['error']
+    assert 'GreenletExit' not in 'error_tb'
     # Check that the traceback is logged. The traceback stored in
     # sys.exc_info() contains an extra entry for the test_log_uncaught_errors
     # frame, so just look for the rest of the traceback.
     tb = sys.exc_info()[2]
     for call in traceback.format_tb(tb)[1:]:
-        assert call in exc_info
+        assert call in error_tb
 
 
 def test_safe_format_exception():
