@@ -5,7 +5,7 @@ import tempfile
 from pytest import fixture
 
 
-@fixture(scope='session')
+@fixture(scope='function')
 def logfile(request):
     """
     Returns an open file handle to a log file.

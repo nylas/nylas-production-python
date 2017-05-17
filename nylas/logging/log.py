@@ -6,7 +6,6 @@ Mostly based off http://www.structlog.org/en/16.1.0/standard-library.html.
 """
 import os
 import sys
-import json
 import traceback
 import logging
 import logging.handlers
@@ -70,8 +69,10 @@ def safe_format_exception(etype, value, tb, limit=None):
     if tb:
         list = ['Traceback (most recent call last):\n']
         list = list + traceback.format_tb(tb, limit)
-    else:
+    elif etype and value:
         list = []
+    else:
+        return None
     exc_only = traceback.format_exception_only(etype, value)
     # Normally exc_only is a list containing a single string.  For syntax
     # errors it may contain multiple elements, but we don't really need to
@@ -83,11 +84,32 @@ def safe_format_exception(etype, value, tb, limit=None):
 
 def _safe_exc_info_renderer(_, __, event_dict):
     """Processor that formats exception info safely."""
+    include_exception = event_dict.pop('include_exception', None)
+    if include_exception is None:
+        if event_dict.get('level', None) == "error":
+            include_exception = True
+
+    error = event_dict.pop('error', None)
     exc_info = event_dict.pop('exc_info', None)
-    if exc_info:
+    if exc_info or include_exception:
         if not isinstance(exc_info, tuple):
             exc_info = sys.exc_info()
-        event_dict['exception'] = safe_format_exception(*exc_info)
+        event_dict.update(create_error_log_context(exc_info))
+
+    # If an `error` is passed, merge that on after the default exc_info
+    if error:
+        if isinstance(error, Exception):
+            __, __, exc_tb = sys.exc_info()
+            new_info = (type(error), error, exc_tb)
+            event_dict.update(create_error_log_context(new_info))
+        else:
+            exc_type, exc_value, exc_tb = sys.exc_info()
+            if exc_value:
+                exc_value.message = error
+                new_info = (exc_type, exc_value, exc_tb)
+                event_dict.update(create_error_log_context(new_info))
+            else:
+                event_dict['error_message'] = error
     return event_dict
 
 
@@ -118,15 +140,16 @@ class BoundLogger(structlog.stdlib.BoundLogger):
         return super(BoundLogger, self)._proxy_to_logger(
                 method_name, event, *event_args, **event_kw)
 
+
 structlog.configure(
     processors=[
         structlog.stdlib.filter_by_level,
         structlog.processors.TimeStamper(fmt='iso', utc=True),
         structlog.processors.StackInfoRenderer(),
+        _record_level,
         _safe_exc_info_renderer,
         _safe_encoding_renderer,
         _record_module,
-        _record_level,
         structlog.processors.JSONRenderer(),
     ],
     context_class=wrap_dict(dict),
@@ -197,13 +220,24 @@ def configure_logging(log_level=None):
 def create_error_log_context(exc_info):
     exc_type, exc_value, exc_tb = exc_info
 
+    out = dict()
+
     # Break down the info as much as Python gives us, for easier aggregation of
     # similar error types.
-    error = exc_type.__name__
-    error_message = exc_value.message
-    error_tb = safe_format_exception(exc_type, exc_value, exc_tb)
+    if hasattr(exc_type, '__name__'):
+        out['error_name'] = exc_type.__name__
 
-    return dict(
-        error=error,
-        error_message=error_message,
-        error_tb=error_tb)
+    if hasattr(exc_value, 'code'):
+        out['error_code'] = exc_value.code
+
+    if hasattr(exc_value, 'message'):
+        out['error_message'] = exc_value.message
+
+    try:
+        tb = safe_format_exception(exc_type, exc_value, exc_tb)
+        if tb:
+            out['error_traceback'] = tb
+    except:
+        pass
+
+    return out

@@ -17,3 +17,6 @@ htmlcov/
 # Vim
 *.swp
 *.swo
+
+.cache
+env/

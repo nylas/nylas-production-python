@@ -4,7 +4,7 @@ import traceback
 
 from nylas.logging import (get_logger, safe_format_exception,
                            MAX_EXCEPTION_LENGTH)
-from nylas.logging.sentry import log_uncaught_errors, get_sentry_client
+from nylas.logging.sentry import log_uncaught_errors
 
 
 class ReallyVerboseError(Exception):
@@ -43,13 +43,13 @@ def test_log_uncaught_errors(logfile):
 
     last_log_entry = json.loads(logfile.readlines()[-1])
 
-    assert 'error' in last_log_entry
+    assert 'error_name' in last_log_entry
     assert 'error_message' in last_log_entry
-    assert 'error_tb' in last_log_entry
-    error_tb = last_log_entry['error_tb']
+    assert 'error_traceback' in last_log_entry
+    error_tb = last_log_entry['error_traceback']
 
-    assert 'ValueError' == last_log_entry['error']
-    assert 'GreenletExit' not in last_log_entry['error_tb']
+    assert 'ValueError' == last_log_entry['error_name']
+    assert 'GreenletExit' not in last_log_entry['error_traceback']
     # Check that the traceback is logged. The traceback stored in
     # sys.exc_info() contains an extra entry for the test_log_uncaught_errors
     # frame, so just look for the rest of the traceback.
