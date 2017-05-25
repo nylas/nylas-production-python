@@ -197,3 +197,70 @@ def test_out_of_scope_exception(logfile):
     assert 'error_name' not in out
     assert 'error_message' not in out
     assert 'error_traceback' not in out
+
+
+def test_lingering_exception(logfile):
+    configure_logging()
+    log = get_logger()
+
+    def some_random_fn():
+        try:
+            raise ValueError("Test message")
+        except ValueError:
+            pass
+
+    log.exception("Oh no")
+    out = json.loads(logfile.readlines()[0])
+    assert out['event'] == "Oh no"
+    assert out['level'] == "error"
+    assert 'error_name' not in out
+    assert 'error_message' not in out
+    assert 'error_traceback' not in out
+
+
+def test_lingering_error(logfile):
+    configure_logging()
+    log = get_logger()
+
+    def some_random_fn():
+        try:
+            raise ValueError("Test message")
+        except ValueError:
+            pass
+
+    log.error("Oh no")
+    out = json.loads(logfile.readlines()[0])
+    assert out['event'] == "Oh no"
+    assert out['level'] == "error"
+    assert 'error_name' not in out
+    assert 'error_message' not in out
+    assert 'error_traceback' not in out
+
+
+def test_adjacent_error(logfile):
+    """
+    NOTE: we can only easily detect the exc_info traceback at the
+    function level. This means while we are protected from the test case
+    above, we will still include exception traces from adjacent functions
+    in the same function call.
+
+    Since fixing this would likely require parsing an AST or compromising
+    on our default exceptuion-including behavior, and this fairly rare
+    case would at worst lead people to the wrong part of the same
+    function, we leave this as a known limitation
+    """
+    configure_logging()
+    log = get_logger()
+
+    try:
+        raise ValueError("Test message")
+    except ValueError:
+        pass
+
+    log.exception("Oh no")
+    out = json.loads(logfile.readlines()[0])
+    assert out['event'] == "Oh no"
+    assert out['level'] == "error"
+    assert out['error_name'] == "ValueError"
+    assert out['error_message'] == "Test message"
+    assert 'error_traceback' in out
