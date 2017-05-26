@@ -104,7 +104,7 @@ def _is_log_in_same_fn_scope(exc_tb):
     cur_stack = traceback.extract_stack()
     calling_fn = None
     for fname, line_num, fn_name, code in reversed(cur_stack):
-        if re.search("log\.(error|exception)", code):
+        if code and re.search("log\.(error|exception)", code):
             calling_fn = fn_name
             break
 
